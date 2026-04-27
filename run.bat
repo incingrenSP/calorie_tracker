@@ -1,4 +1,4 @@
 @echo off
-echo Starting CalorieTracker...
-start "" http://localhost:8000
+echo Starting Calorie Tracker...
+start "" http://localhost:3000
 node server.js

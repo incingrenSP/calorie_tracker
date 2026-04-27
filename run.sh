@@ -1,4 +1,4 @@
 #!/bin/bash
-echo "Starting CalorieTracker..."
-sleep 1 && open http://localhost:8000 &
+echo "Starting Calorie Tracker..."
+sleep 1 && open http://localhost:3000 &
 node server.js
