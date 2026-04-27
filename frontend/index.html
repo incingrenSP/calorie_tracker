@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CalorieTracker</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Barlow:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div id="setup-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-brand"><span class="brand-icon">◈</span><h1>CalorieTracker</h1></div>
+    <p class="modal-sub">Your personal fitness companion. Let's get started.</p>
+    <div class="setup-grid">
+      <label><span>Height (cm)</span><input type="number" id="setup-height" placeholder="e.g. 175" min="100" max="250"/></label>
+      <label><span>Current Weight (kg)</span><input type="number" id="setup-weight" placeholder="e.g. 70" min="30" max="300"/></label>
+      <label><span>Neck (cm)</span><input type="number" id="setup-neck" placeholder="e.g. 40" min="30" max="100"/></label>
+      <label><span>Waist (cm)</span><input type="number" id="setup-waist" placeholder="e.g. 90" min="80" max="150"/></label>
+      <label><span>Age</span><input type="number" id="setup-age" placeholder="e.g. 25" min="10" max="100"/></label>
+      <label><span>Gender</span><select id="setup-gender"><option value="male">Male</option><option value="female">Female</option></select></label>
+      <label class="full-width"><span>Daily Calorie Target</span><input type="number" id="setup-calories" placeholder="e.g. 2000" min="1000" max="5000"/></label>
+    </div>
+    <button class="btn-primary" onclick="submitSetup()">Start Tracking →</button>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <nav class="sidebar">
+    <div class="sidebar-brand"><span class="brand-icon">◈</span><span>CalorieTracker</span></div>
+    <ul class="nav-links">
+      <li><a href="#" class="nav-link active" data-tab="dashboard">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a></li>
+      <li><a href="#" class="nav-link" data-tab="calories">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+        Calories
+      </a></li>
+      <li><a href="#" class="nav-link" data-tab="workout">
+        <svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/></svg>
+        Workout
+      </a></li>
+      <li><a href="#" class="nav-link" data-tab="records">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+        Past Records
+      </a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn-settings" onclick="openSettings()">Settings</button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- PAST RECORDS TAB -->
+    <section id="tab-records" class="tab-content">
+      <header class="page-header">
+        <h2>Past Records</h2>
+        <p class="subtext">Daily calorie history</p>
+      </header>
+      <div id="past-records-list" class="past-records-grid">
+        <div class="empty-state">No records yet. Records are saved automatically at midnight.</div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="tab-dashboard" class="tab-content active">
+      <header class="page-header">
+        <div><h2 id="dash-day">Monday</h2><p id="dash-date" class="subtext">April 26, 2026</p></div>
+        <div class="routine-day-display"><span id="dash-routine-day">PUSH DAY</span></div>
+        <div class="live-clock"><span id="dash-time">00:00:00</span></div>
+      </header>
+
+      <div class="stats-row">
+        <div class="stat-card accent-green">
+          <span class="stat-label">Calories In</span>
+          <span class="stat-value" id="dash-consumed">—</span>
+          <span class="stat-unit">kcal</span>
+        </div>
+        <div class="stat-card accent-orange">
+          <span class="stat-label">Calories Burned</span>
+          <span class="stat-value" id="dash-burned">—</span>
+          <span class="stat-unit">kcal</span>
+        </div>
+        <div class="stat-card accent-blue">
+          <span class="stat-label">Net Remaining</span>
+          <span class="stat-value" id="dash-remaining">—</span>
+          <span class="stat-unit">kcal</span>
+        </div>
+        <div class="stat-card accent-purple">
+          <span class="stat-label">Workout Today</span>
+          <span class="stat-value" id="dash-workout-status">—</span>
+        </div>
+      </div>
+
+      <div class="stats-row secondary">
+        <div class="stat-card-sm"><span class="stat-label">BMI</span><span class="stat-value-sm" id="dash-bmi">—</span></div>
+        <div class="stat-card-sm"><span class="stat-label">Body Fat %</span><span class="stat-value-sm" id="dash-bodyfat">—</span></div>
+        <div class="stat-card-sm"><span class="stat-label">Current Weight</span><span class="stat-value-sm" id="dash-weight">—</span><span class="stat-unit-sm">kg</span></div>
+        <div class="stat-card-sm"><span class="stat-label">Daily Target</span><span class="stat-value-sm" id="dash-target">—</span><span class="stat-unit-sm">kcal</span></div>
+      </div>
+
+      <!-- WATER TRACKER -->
+      <div class="water-card">
+        <div class="water-header">
+          <div>
+            <h3>Water Intake</h3>
+            <p class="subtext" id="water-status-text">Daily goal: 3L minimum</p>
+          </div>
+          <div class="water-meta">
+            <span class="water-amount" id="water-amount">0.0L</span>
+            <span class="water-max">/ 5L</span>
+          </div>
+        </div>
+        <div class="water-bar-track">
+          <div class="water-segment" id="wseg-0"></div>
+          <div class="water-segment" id="wseg-1"></div>
+          <div class="water-segment" id="wseg-2"></div>
+          <div class="water-segment" id="wseg-3"></div>
+          <div class="water-segment" id="wseg-4"></div>
+        </div>
+        <div class="water-labels">
+          <span>1L</span><span>2L</span><span>3L</span><span>4L</span><span>5L</span>
+        </div>
+        <button class="btn-chug" id="chug-btn" onclick="chug()">Chug!</button>
+      </div>
+
+      <!-- Weight Chart + Log -->
+      <div class="dashboard-bottom">
+        <div class="chart-card">
+          <div class="chart-header"><h3>Weight Trend</h3><span class="chart-sub">Last 12 entries</span></div>
+          <canvas id="weight-chart"></canvas>
+        </div>
+        <div class="weight-log-card">
+          <h3>Log Weight</h3>
+          <p class="subtext">Record today's weight</p>
+          <div class="weight-input-row">
+            <input type="number" id="weight-input" placeholder="kg" step="0.1" min="30" max="300"/>
+            <button class="btn-primary" onclick="logWeight()">Log</button>
+          </div>
+          <div id="weight-log-list" class="weight-log-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALORIES TAB with embedded meal sub-tabs -->
+    <section id="tab-calories" class="tab-content">
+      <header class="page-header">
+        <h2>Calories</h2>
+        <p class="subtext" id="cal-date-label">Today</p>
+      </header>
+
+      <div class="calorie-summary-grid">
+        <div class="cal-ring-card">
+          <div class="ring-container">
+            <canvas id="cal-ring" width="200" height="200"></canvas>
+            <div class="ring-center"><span id="ring-remaining">—</span><small>remaining</small></div>
+          </div>
+        </div>
+        <div class="cal-breakdown">
+          <div class="cal-row"><div class="cal-dot green"></div><span class="cal-label">Target</span><span class="cal-value" id="cal-target">—</span><span class="cal-unit">kcal</span></div>
+          <div class="cal-row"><div class="cal-dot orange"></div><span class="cal-label">Burned</span><span class="cal-value" id="cal-burned">—</span><span class="cal-unit">kcal</span></div>
+          <div class="cal-row"><div class="cal-dot red"></div><span class="cal-label">Consumed</span><span class="cal-value" id="cal-consumed">—</span><span class="cal-unit">kcal</span></div>
+          <div class="cal-divider"></div>
+          <div class="cal-row final"><div class="cal-dot blue"></div><span class="cal-label">Remaining</span><span class="cal-value" id="cal-remaining">—</span><span class="cal-unit">kcal</span></div>
+          <div class="cal-formula"><code>(Target + Burned) − Consumed</code></div>
+        </div>
+      </div>
+
+      <!-- Meal sub-tab buttons -->
+      <div class="meal-subtabs-bar">
+        <button class="meal-subtab active" data-meal="breakfast" onclick="switchMealSubtab('breakfast', this)">Breakfast</button>
+        <button class="meal-subtab" data-meal="lunch" onclick="switchMealSubtab('lunch', this)">Lunch</button>
+        <button class="meal-subtab" data-meal="snack" onclick="switchMealSubtab('snack', this)">Snacks</button>
+        <button class="meal-subtab" data-meal="dinner" onclick="switchMealSubtab('dinner', this)">Dinner</button>
+      </div>
+
+      <!-- Single shared meal panel -->
+      <div class="meal-panel">
+        <div class="food-grid" id="food-grid-main"></div>
+        <div class="meal-sidebar">
+          <h3>Logged <span id="meal-sidebar-label" class="meal-label-badge">Breakfast</span></h3>
+          <div class="meal-log" id="meal-log-main"></div>
+          <div class="meal-total">Total: <strong id="meal-total-main">0</strong> kcal</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORKOUT TAB -->
+    <section id="tab-workout" class="tab-content">
+      <header class="page-header">
+        <h2>Workout Log</h2>
+        <p class="subtext">Track your exercise</p>
+      </header>
+      <div class="workout-layout">
+        <div class="workout-picker-panel">
+          <h3>Choose Exercise</h3>
+          <div class="workout-filter-tabs">
+            <button class="filter-tab active" onclick="filterWorkouts('all', this)">All</button>
+            <button class="filter-tab" onclick="filterWorkouts('cardio', this)">Cardio</button>
+            <button class="filter-tab" onclick="filterWorkouts('push', this)">Push</button>
+            <button class="filter-tab" onclick="filterWorkouts('pull', this)">Pull</button>
+            <button class="filter-tab" onclick="filterWorkouts('leg', this)">Leg</button>
+          </div>
+          <div id="workout-list" class="workout-list"></div>
+        </div>
+        <div class="workout-log-panel">
+          <div class="selected-workout-form" id="workout-form" style="display:none;">
+            <h3 id="workout-form-title">Exercise Name</h3>
+            <p id="workout-form-meta" class="subtext"></p>
+            <div class="workout-input-row">
+              <input type="number" id="workout-value" placeholder="0" min="1"/>
+              <span id="workout-unit-label">minutes</span>
+            </div>
+            <p class="est-cal">Estimated burn: <strong id="est-cal-burn">0</strong> kcal</p>
+            <button class="btn-primary" onclick="logWorkout()">Log Workout ✓</button>
+            <button class="btn-text" onclick="clearWorkoutForm()">Cancel</button>
+          </div>
+          <div id="workout-placeholder" class="workout-placeholder">
+            <span>←</span><p>Select an exercise to log</p>
+          </div>
+          <div class="workout-today">
+            <h3>Today's Workouts</h3>
+            <div id="workout-today-list" class="workout-today-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header"><h2>Settings</h2><button class="btn-close" onclick="closeSettings()">✕</button></div>
+    <div class="setup-grid">
+      <label><span>Height (cm)</span><input type="number" id="settings-height" min="100" max="250"/></label>
+      <label><span>Neck (cm)</span><input type="number" id="settings-neck" min="30" max="100"/></label>
+      <label><span>Waist (cm)</span><input type="number" id="settings-waist" min="50" max="200"/></label>
+      <label><span>Age</span><input type="number" id="settings-age" min="10" max="100"/></label>
+      <label><span>Gender</span><select id="settings-gender"><option value="male">Male</option><option value="female">Female</option></select></label>
+      <label class="full-width"><span>Daily Calorie Target</span><input type="number" id="settings-calories" min="1000" max="5000"/></label>
+    </div>
+    <button class="btn-primary" onclick="saveSettings()">Save Changes</button>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<script src="js/app.js"></script>
+</body>
+</html>
